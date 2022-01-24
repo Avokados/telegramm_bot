@@ -7,6 +7,7 @@ from aiogram import Bot
 from aiogram import types
 from BotConfig import BotToken as bt
 import io
+import os
 
 import cv2
 import numpy as np
@@ -14,8 +15,6 @@ import numpy as np
 bot = Bot(token=bt)
 dp = Dispatcher(bot)
 image = io.BytesIO()
-a1 = 1
-
 
 @dp.message_handler(commands=["start"])
 async def start_message(message):
@@ -25,14 +24,27 @@ async def start_message(message):
 
 
 @dp.message_handler(content_types=['photo'])
-async def handle_photo(message):
+def handle_photo(message):
     chat_id = message.chat.id
     print(chat_id)
-    a = 1
+    a = int(0)
     print("a = " + str(a))
-    await message.photo[-1].download(str(chat_id) + str(a) + ".jpg")
     a = a + 1
-    print('a = ' + str(a))
+    message.photo[-1].download(str(chat_id))
+    n_img = cv2.imread(str(chat_id))
+    n_img = cv2.GaussianBlur(n_img, (5, 5), 3)
+    n_img = cv2.cvtColor(n_img, cv2.COLOR_BGR2GRAY)
+    n_img = cv2.Canny(n_img, 30, 30)
+    kernel = np.ones((3, 3), np.uint8)
+    n_img = cv2.dilate(n_img, kernel, iterations=1)
+    path = ''
+    cv2.imwrite(os.path.join(path, 'n_img.jpg'), n_img)
+    bot.send_photo(chat_id=chat_id, photo='waka.jpg')
+
+
+
+
+
 
 
 # @dp.message_handler(content_types=["photo"])
@@ -46,18 +58,7 @@ async def handle_photo(message):
 # тип данных в переменной - io.BytesIO
 # await message.answer(type(image))
 
-# # img = cv2.imread('file_13.jpg')
-# img = a
-# # n_img = cv2.resize(img, (img.shape[1] // 2, img.shape[0] // 2))
-# n_img = cv2.GaussianBlur(img, (5, 5), 3)
-# n_img = cv2.cvtColor(n_img, cv2.COLOR_BGR2GRAY)
-#
-# n_img = cv2.Canny(n_img, 30, 30)
-#
-# kernel = np.ones((3, 3), np.uint8)
-# n_img = cv2.dilate(n_img, kernel, iterations=1)
-# n_img = InputFile(n_img)
-# await bot.send_photo(chat_id=chat_id, photo=n_img)
+
 
 
 if __name__ == '__main__':
